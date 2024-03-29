@@ -42,7 +42,12 @@ void saveMaterial(const std::string &name, Material material, const std::string 
 {
     std::ofstream outputfile(filename, std::ios::binary);
     MaterialHeader header;
-    header.textureCount = material.textures.size();
+
+    uint32_t textureCount = 0;
+    for (const std::vector<Texture> &texturesOfType : material.textures)
+        textureCount += texturesOfType.size();
+
+    header.textureCount = textureCount;
     header.nameLength = name.size();
 
     outputfile.write(reinterpret_cast<const char*>(&header), sizeof(MaterialHeader));
