@@ -77,7 +77,7 @@ std::optional<model> read_model(const std::string &filepath)
             return {};
     }
 
-    std::string model_name(header.name_length+1, '\0');
+    std::string model_name(header.name_length, '\0');
     file.read(model_name.data(), header.name_length);
 
     for (uint32_t i = 0; i < header.num_of_meshes; i++)
@@ -86,7 +86,7 @@ std::optional<model> read_model(const std::string &filepath)
         std::vector<float> vertices;
         std::vector<uint32_t> indices;
         file.read(reinterpret_cast<char*>(&subheader), sizeof(mesh_subheader));
-        std::string material_name(subheader.material_name_length+1, '\0');
+        std::string material_name(subheader.material_name_length, '\0');
         file.read(material_name.data(), subheader.material_name_length);
         file.read(reinterpret_cast<char*>(vertices.data()), subheader.vertex_count * vertex_type_to_size(vertex_type::type(subheader.vertex_type)));
         file.read(reinterpret_cast<char*>(indices.data()), subheader.index_count * index_type_to_size(index_type::type(subheader.index_type)));
@@ -118,14 +118,14 @@ std::optional<material> read_material(const std::string &filepath)
             return {};
     }
 
-    std::string material_name(header.name_length+1, '\0');
+    std::string material_name(header.name_length, '\0');
     file.read(material_name.data(), header.name_length);
 
     for (uint32_t i = 0; i < header.texture_count; i++)
     {
         texture_subheader subheader;
         file.read(reinterpret_cast<char*>(&subheader), sizeof(subheader));
-        std::string texture_path(subheader.path_length+1, '\0');
+        std::string texture_path(subheader.path_length, '\0');
         file.read(texture_path.data(), texture_path.size());
         textures[subheader.texture_type].emplace_back(texture_path);
     }

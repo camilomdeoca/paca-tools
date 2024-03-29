@@ -3,17 +3,17 @@
 
 #include <fstream>
 
-void saveModel(const std::string &name, const std::vector<Mesh> &meshes, const std::string &filename)
+void saveModel(const std::string &name, const Model &model, const std::string &filename)
 {
     std::ofstream outfile(filename, std::ios::binary);
     ModelHeader header;
-    header.numOfMeshes = meshes.size();
+    header.numOfMeshes = model.meshes.size();
     header.nameLength = name.size();
     
     outfile.write(reinterpret_cast<const char*>(&header), sizeof(header));
     outfile.write(name.c_str(), name.size());
 
-    for (const Mesh &mesh : meshes)
+    for (const Mesh &mesh : model.meshes)
     {
         MeshSubHeader subheader;
         subheader.vertexType = mesh.vertexType;

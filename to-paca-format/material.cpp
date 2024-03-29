@@ -38,15 +38,15 @@ uint32_t aiTextureTypeToPMATType(aiTextureType type)
     exit(2);
 }
 
-void saveMaterial(Material material, const std::string &filename)
+void saveMaterial(const std::string &name, Material material, const std::string &filename)
 {
     std::ofstream outputfile(filename, std::ios::binary);
     MaterialHeader header;
     header.textureCount = material.textures.size();
-    header.nameLength = material.name.size();
+    header.nameLength = name.size();
 
     outputfile.write(reinterpret_cast<const char*>(&header), sizeof(MaterialHeader));
-    outputfile.write(material.name.c_str(), material.name.size());
+    outputfile.write(name.c_str(), name.size());
 
     for (int textureType = TextureType::none; textureType < TextureType::last; textureType++)
     {

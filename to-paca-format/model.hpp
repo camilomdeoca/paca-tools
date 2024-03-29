@@ -3,7 +3,6 @@
 #include "meshes.hpp"
 
 #include <string>
-#include <uchar.h>
 #include <vector>
 
 struct ModelHeader {
@@ -17,4 +16,4 @@ struct Model {
     std::vector<Mesh> meshes;
 };
 
-void saveModel(const std::string &name, const std::vector<Mesh> &meshes, const std::string &filename);
+void saveModel(const std::string &name, const Model &model, const std::string &filename);

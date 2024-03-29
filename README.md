@@ -15,8 +15,10 @@ Generates engine's model and material files from model file.
 Usage:
 
 ```
-./build/to-paca-format <input_model>
+./build/to-paca-format <input_model> <output_name>
 ```
+
+Will generate `<output_name>.pmdl` and `<output_name>.pmat` files.
 
 ### Library to read paca models and materials
 

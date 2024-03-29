@@ -42,7 +42,7 @@ Material processMaterial(aiMaterial *material)
     return result;
 }
 
-Mesh processMesh(aiMesh *mesh, const aiScene *scene, const std::string &directory)
+Mesh processMesh(aiMesh *mesh, const aiScene *scene, const std::string &outName)
 {
     std::vector<float> vertices;
     std::vector<uint32_t> indices;
@@ -91,24 +91,29 @@ Mesh processMesh(aiMesh *mesh, const aiScene *scene, const std::string &director
     else
         vertexType = VertexType::float3pos_float3norm_float2texture;
 
-    return Mesh{vertexType, vertices, indices, "Material" + std::to_string(mesh->mMaterialIndex)};
+    return Mesh{vertexType, vertices, indices, outName + "Material" + std::to_string(mesh->mMaterialIndex)};
 }
 
-void processNode(aiNode *node, const aiScene *scene, std::vector<Mesh> &meshesOut, const std::string &directory)
+void processNode(aiNode *node, const aiScene *scene, std::vector<Mesh> &meshesOut, const std::string &outName)
 {
     for (unsigned int i = 0; i < node->mNumMeshes; i++)
     {
         aiMesh *mesh = scene->mMeshes[node->mMeshes[i]];
-        meshesOut.push_back(processMesh(mesh, scene, directory));
+        meshesOut.push_back(processMesh(mesh, scene, outName));
     }
 
     for (unsigned int i = 0; i < node->mNumChildren; i++)
     {
-        processNode(node->mChildren[i], scene, meshesOut, directory);
+        processNode(node->mChildren[i], scene, meshesOut, outName);
     }
 }
 
-std::optional<Model> loadModel(const std::string &path)
+struct Scene {
+    Model model;
+    std::vector<Material> materials;
+};
+
+std::optional<Scene> loadScene(const std::string &path, const std::string &outName)
 {
     std::vector<Mesh> meshes;
     Assimp::Importer importer;
@@ -122,33 +127,37 @@ std::optional<Model> loadModel(const std::string &path)
     }
 
     std::string directory = path.substr(0, path.find_last_of('/'));
-    processNode(scene->mRootNode, scene, meshes, directory);
+    processNode(scene->mRootNode, scene, meshes, outName);
 
     std::vector<Material> materials;
 
     materials.emplace_back(processMaterial(scene->mMaterials[0]));
-    materials[0].name = "Material" + std::to_string(0);
-    saveMaterial(materials[0], "material.pmat");
 
-    return Model{meshes};
+    return Scene{{meshes}, materials};
 }
 
 int main (int argc, char *argv[])
 {
-    if (argc < 2) {
-        fprintf(stderr, "usage: %s <input_model>\n", argv[0]);
+    if (argc < 3) {
+        fprintf(stderr, "usage: %s <input_model> <output_name>\n", argv[0]);
         return 1;
     }
 
     std::string inputFilepath(argv[1]);
+    std::string outName(argv[2]);
 
     Assimp::Importer importer;
-    std::optional<Model> model = loadModel(inputFilepath);
+    std::optional<Scene> scene = loadScene(inputFilepath, outName);
 
-    if (!model.has_value())
+    if (!scene.has_value())
         return 1; 
 
-    saveModel("ModelName", model.value().meshes, "model.pmdl");
+    saveModel(outName + "Model", scene.value().model, outName + ".pmdl");
+
+    for (unsigned int i = 0; i < scene.value().materials.size(); i++)
+    {
+        saveMaterial(outName + "Material" + std::to_string(i), scene.value().materials[i], outName + ".pmat");
+    }
     
     return 0;
 }

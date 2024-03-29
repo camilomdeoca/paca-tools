@@ -3,7 +3,6 @@
 #include <assimp/material.h>
 #include <cstdint>
 #include <string>
-#include <uchar.h>
 #include <array>
 #include <vector>
 
@@ -31,7 +30,7 @@ struct MaterialHeader {
 
 struct Material {
     std::array<std::vector<Texture>, TextureType::Type::last> textures;
-    std::string name;
+    //std::string name;
 };
 
-void saveMaterial(Material material, const std::string &filename);
+void saveMaterial(const std::string &name, Material material, const std::string &filename);
