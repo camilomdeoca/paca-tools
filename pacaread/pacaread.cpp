@@ -45,6 +45,17 @@ size_t vertex_type_to_size(vertex_type::type type)
     exit(1);
 }
 
+uint32_t vertex_type_to_num_of_floats(vertex_type::type type)
+{
+    switch (type) {
+        case vertex_type::float3pos_float3norm_float2texture:            return 3+3+2;
+        case vertex_type::float3pos_float3norm_float3tang_float2texture: return 3+3+3+2;
+        default: break;
+    }
+
+    exit(1);
+}
+
 size_t index_type_to_size(index_type::type type)
 {
     switch (type) {
@@ -86,6 +97,8 @@ std::optional<model> read_model(const std::string &filepath)
         std::vector<float> vertices;
         std::vector<uint32_t> indices;
         file.read(reinterpret_cast<char*>(&subheader), sizeof(mesh_subheader));
+        vertices.resize(subheader.vertex_count * vertex_type_to_num_of_floats(vertex_type::type(subheader.vertex_type)));
+        indices.resize(subheader.index_count);
         std::string material_name(subheader.material_name_length, '\0');
         file.read(material_name.data(), subheader.material_name_length);
         file.read(reinterpret_cast<char*>(vertices.data()), subheader.vertex_count * vertex_type_to_size(vertex_type::type(subheader.vertex_type)));
