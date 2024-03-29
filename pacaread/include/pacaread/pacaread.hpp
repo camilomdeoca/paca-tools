@@ -31,6 +31,7 @@ struct mesh {
 
 struct model {
     std::vector<mesh> meshes;
+    std::string name;
 };
 
 namespace texture_type {

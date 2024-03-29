@@ -94,7 +94,7 @@ std::optional<model> read_model(const std::string &filepath)
         meshes.emplace_back(subheader.vertex_type, vertices, indices, material_name);
     }
 
-    return model{meshes};
+    return model{meshes, model_name};
 }
 
 std::optional<material> read_material(const std::string &filepath)
