@@ -6,36 +6,33 @@
 #include <array>
 #include <vector>
 
-namespace paca_read {
+namespace paca_format {
 
-namespace vertex_type {
-    enum type : uint32_t {
-        float3pos_float3norm_float2texture = 1,
-        float3pos_float3norm_float3tang_float2texture = 2
-    };
-}
-
-namespace index_type {
-    enum type : uint32_t {
-        no_indices = 0,
-        int32bit = 1,
-    };
-}
-
-struct mesh {
-    uint32_t vertex_type;
-    std::vector<float> vertices;
-    std::vector<uint32_t> indices;
-    std::string material_name;
+enum class VertexType : uint32_t {
+    float3pos_float3norm_float2texture = 1,
+    float3pos_float3norm_float3tang_float2texture = 2
 };
 
-struct model {
-    std::vector<mesh> meshes;
+enum class IndexType : uint32_t {
+    no_indices = 0,
+    int32bit = 1,
+};
+
+struct Mesh {
+    VertexType vertexType;
+    IndexType indexType;
+    std::vector<float> vertices;
+    std::vector<uint32_t> indices;
+    std::string materialName;
+};
+
+struct Model {
+    std::vector<Mesh> meshes;
     std::string name;
 };
 
-namespace texture_type {
-    enum type : uint32_t {
+namespace TextureType {
+    enum Type : uint32_t {
         none = 0,
         diffuse = 1,
         specular = 2,
@@ -45,16 +42,51 @@ namespace texture_type {
     };
 }
 
-struct texture {
+struct Texture {
     std::string path;
 };
 
-struct material {
-    std::array<std::vector<texture>, texture_type::last> textures;
+struct Material {
+    std::array<std::vector<Texture>, TextureType::last> textures;
     std::string name;
 };
 
-std::optional<model> read_model(const std::string &filepath);
-std::optional<material> read_material(const std::string &filepath);
+std::optional<Model> readModel(const std::string &filepath);
+std::optional<Material> readMaterial(const std::string &filepath);
+
+namespace headers {
+
+struct ModelHeader {
+    char8_t magicBytes[4] = {'P', 'M', 'D', 'L'};
+    uint32_t version = 0;
+    uint32_t numOfMeshes;
+    uint32_t nameLength;
+};
+
+struct MeshSubheader {
+    uint32_t vertexType;
+    uint32_t vertexCount;
+    uint32_t indexType;
+    uint32_t indexCount;
+    uint32_t materialNameLength;
+};
+
+struct MaterialHeader {
+    char8_t magicBytes[4] = {'P', 'M', 'A', 'T'};
+    uint32_t version = 0;
+    uint32_t textureCount;
+    uint32_t nameLength;
+};
+
+struct TextureSubheader {
+    uint32_t textureType;
+    uint32_t pathLength;
+};
+
+}
+
+size_t vertexTypeToSize(VertexType type);
+uint32_t vertexTypeToNumOfFloats(VertexType type);
+size_t indexTypeToSize(IndexType type);
 
 } // namespace paca_read
