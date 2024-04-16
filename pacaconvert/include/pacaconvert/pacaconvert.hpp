@@ -6,11 +6,12 @@
 
 namespace paca_format {
 
-struct ModelAndMaterials {
-    paca_format::Model model;
-    std::vector<paca_format::Material> materials;
+struct ModelMaterialsAnimations {
+    std::optional<paca_format::Model> model;
+    std::optional<std::vector<paca_format::Material>> materials;
+    std::optional<Animation> animation;
 };
 
-std::optional<ModelAndMaterials> modelToPacaFormat(const std::string &path, const std::string &outName);
+ModelMaterialsAnimations modelToPacaFormat(const std::string &path, const std::string &outName);
 
 } // namespace paca_format

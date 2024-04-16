@@ -1,6 +1,8 @@
 #include "pacawrite.hpp"
+#include "pacaread/pacaread.hpp"
 
 #include <fstream>
+#include <glm/gtc/type_ptr.hpp>
 
 namespace paca_format {
 
@@ -47,16 +49,74 @@ void saveModel(const Model &model, const std::string &filename)
         // Write header
         headers::MeshSubheader subheader;
         subheader.vertexType = static_cast<uint32_t>(mesh.vertexType);
-        subheader.vertexCount = mesh.vertices.size()/vertexTypeToNumOfFloats(VertexType(mesh.vertexType));
+        subheader.vertexCount = mesh.vertices.size()/vertexTypeToSize(VertexType(mesh.vertexType));
         subheader.indexType = static_cast<uint32_t>(mesh.indexType);
         subheader.indexCount = mesh.indices.size();
+        subheader.boneCount = mesh.skeleton.bones.size();
         subheader.materialNameLength = mesh.materialName.size();
         outfile.write(reinterpret_cast<const char*>(&subheader), sizeof(subheader));
         outfile.write(mesh.materialName.data(), mesh.materialName.size());
 
+        // Write bones
+        for (uint32_t boneId = 0; boneId < mesh.skeleton.bones.size(); boneId++)
+        {
+            const Bone &bone = mesh.skeleton.bones[boneId];
+            const std::string &boneName = mesh.skeleton.boneNames[boneId];
+            headers::BoneSubheader boneSubheader;
+            boneSubheader.parentID = bone.parentID;
+            boneSubheader.offset = bone.offsetMatrix;
+            outfile.write(reinterpret_cast<const char*>(&boneSubheader), sizeof(headers::BoneSubheader));
+            outfile.write(boneName.data(), boneName.size());
+        }
+
         // Write vertices and indices
-        outfile.write(reinterpret_cast<const char*>(mesh.vertices.data()), sizeof(float) * mesh.vertices.size());
+        outfile.write(reinterpret_cast<const char*>(mesh.vertices.data()), mesh.vertices.size());
         outfile.write(reinterpret_cast<const char*>(mesh.indices.data()), sizeof(uint32_t) * mesh.indices.size());
+    }
+}
+
+void saveAnimation(const Animation &animation, const std::string &filename)
+{
+    std::ofstream outfile(filename, std::ios::binary);
+
+    headers::AnimationHeader header;
+    header.duration = animation.duration;
+    header.ticksPerSecond = animation.ticksPerSecond;
+    header.boneKeyFramesCount = animation.keyframes.size();
+    header.nameLength = animation.name.size();
+    outfile.write(reinterpret_cast<const char*>(&header), sizeof(header));
+    outfile.write(animation.name.data(), animation.name.size());
+
+    // Continue
+    for (uint32_t boneId = 0; boneId < animation.keyframes.size(); boneId++)
+    {
+        headers::AnimationBoneSubheader animationBoneSubheader;
+        animationBoneSubheader.positionKeyframesCount = animation.keyframes[boneId].positions.size();
+        animationBoneSubheader.rotationKeyframesCount = animation.keyframes[boneId].rotations.size();
+        animationBoneSubheader.scalingKeyframesCount = animation.keyframes[boneId].scalings.size();
+
+        outfile.write(reinterpret_cast<const char*>(&animationBoneSubheader), sizeof(animationBoneSubheader));
+        for (uint32_t i = 0; i < animation.keyframes[boneId].positions.size(); i++)
+        {
+            headers::PositionKeyframe positionKeyframe;
+            positionKeyframe.time = animation.keyframes[boneId].positions[i].time;
+            positionKeyframe.position = animation.keyframes[boneId].positions[i].position;
+            outfile.write(reinterpret_cast<const char*>(&positionKeyframe), sizeof(positionKeyframe));
+        }
+        for (uint32_t i = 0; i < animation.keyframes[boneId].rotations.size(); i++)
+        {
+            headers::RotationKeyframe rotationKeyframe;
+            rotationKeyframe.time = animation.keyframes[boneId].rotations[i].time;
+            rotationKeyframe.quaternion = animation.keyframes[boneId].rotations[i].quaternion;
+            outfile.write(reinterpret_cast<const char*>(&rotationKeyframe), sizeof(rotationKeyframe));
+        }
+        for (uint32_t i = 0; i < animation.keyframes[boneId].scalings.size(); i++)
+        {
+            headers::ScalingKeyframe scalingKeyframe;
+            scalingKeyframe.time = animation.keyframes[boneId].scalings[i].time;
+            scalingKeyframe.scaling = animation.keyframes[boneId].scalings[i].scale;
+            outfile.write(reinterpret_cast<const char*>(&scalingKeyframe), sizeof(scalingKeyframe));
+        }
     }
 }
 

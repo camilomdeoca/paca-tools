@@ -15,17 +15,19 @@ int main (int argc, char *argv[])
     std::string inputFilepath(argv[1]);
     std::string outName(argv[2]);
 
-    std::optional<paca_format::ModelAndMaterials> modelAndMaterials = paca_format::modelToPacaFormat(inputFilepath, outName);
+    paca_format::ModelMaterialsAnimations modelAndMaterials = paca_format::modelToPacaFormat(inputFilepath, outName);
 
-    if (!modelAndMaterials.has_value())
-        return 1; 
+    if (modelAndMaterials.model.has_value())
+        paca_format::saveModel(modelAndMaterials.model.value(), outName + ".pmdl");
 
-    paca_format::saveModel(modelAndMaterials.value().model, outName + ".pmdl");
+    if (modelAndMaterials.materials.has_value())
+        for (unsigned int i = 0; i < modelAndMaterials.materials.value().size(); i++)
+        {
+            paca_format::saveMaterial(modelAndMaterials.materials.value()[i], outName + ".pmat");
+        }
 
-    for (unsigned int i = 0; i < modelAndMaterials.value().materials.size(); i++)
-    {
-        paca_format::saveMaterial(modelAndMaterials.value().materials[i], outName + ".pmat");
-    }
+    if (modelAndMaterials.animation.has_value())
+        paca_format::saveAnimation(modelAndMaterials.animation.value(), outName + ".pani");
     
     return 0;
 }
