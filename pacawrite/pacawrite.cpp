@@ -65,6 +65,7 @@ void saveModel(const Model &model, const std::string &filename)
             headers::BoneSubheader boneSubheader;
             boneSubheader.parentID = bone.parentID;
             boneSubheader.offset = bone.offsetMatrix;
+            boneSubheader.boneNameLength = boneName.size();
             outfile.write(reinterpret_cast<const char*>(&boneSubheader), sizeof(headers::BoneSubheader));
             outfile.write(boneName.data(), boneName.size());
         }
