@@ -149,7 +149,8 @@ std::optional<Animation> readAnimation(const std::string &filepath)
     std::string animationName(header.nameLength, '\0');
     file.read(animationName.data(), header.nameLength);
     result.name = animationName;
-    
+
+    result.keyframes.resize(header.boneKeyFramesCount);
     for (uint32_t boneId = 0; boneId < header.boneKeyFramesCount; boneId++)
     {
         headers::AnimationBoneSubheader animationBoneSubheader;
