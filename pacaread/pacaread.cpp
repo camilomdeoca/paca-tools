@@ -86,7 +86,7 @@ std::optional<Model> readModel(const std::string &filepath)
         file.read(reinterpret_cast<char*>(vertices.data()), subheader.vertexCount * vertexTypeToSize(VertexType(subheader.vertexType)));
         file.read(reinterpret_cast<char*>(indices.data()), subheader.indexCount * indexTypeToSize(IndexType(subheader.indexType)));
 
-        meshes.emplace_back(VertexType(subheader.vertexType), IndexType(subheader.indexType), vertices, indices, materialName);
+        meshes.emplace_back(VertexType(subheader.vertexType), IndexType(subheader.indexType), vertices, indices, materialName, Skeleton{bones, boneNames});
     }
 
     return Model{meshes, modelName};
