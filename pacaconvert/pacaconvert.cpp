@@ -7,6 +7,7 @@
 #include <assimp/postprocess.h>
 #include <assimp/scene.h>
 #include <cstddef>
+#include <cstdio>
 #include <cstring>
 #include <limits>
 #include <string>
@@ -116,7 +117,7 @@ void processBoneChilds(aiNode *node, Skeleton &outSkeleton, const std::unordered
     auto it = bonesData.find(node->mName.C_Str());
     if (it != bonesData.end()) // if node is a bone
     {
-        outSkeleton.bones.emplace_back(parentID, it->second.offset);
+        outSkeleton.bones.emplace_back(parentID, it->second.offset, toGlmMatrix(node->mTransformation));
         outSkeleton.boneNames.emplace_back(node->mName.C_Str());
         for (unsigned int i = 0; i < node->mNumChildren; i++)
         {
@@ -172,7 +173,7 @@ Mesh processMesh(aiMesh *mesh, const aiScene *scene, const std::string &outName,
         {
             unsigned int vertexID = mesh->mBones[boneIndex]->mWeights[weightIndex].mVertexId;
             float weight = mesh->mBones[boneIndex]->mWeights[weightIndex].mWeight;
-            bonesInfluences[vertexID].emplace_back(boneIndex, weight);
+            bonesInfluences[vertexID].emplace_back(mesh->mNumBones - 1 - boneIndex, weight);
 
             //Bone &newBone = result.bones.emplace_back();
             //std::memcpy(newBone.offset, &mesh->mBones[boneIndex]->mOffsetMatrix, sizeof(newBone.offset));
@@ -238,7 +239,12 @@ Mesh processMesh(aiMesh *mesh, const aiScene *scene, const std::string &outName,
         std::unordered_map<std::string, BoneData> bonesData;
         for (unsigned int boneId = 0; boneId < mesh->mNumBones; boneId++)
         {
-            bonesData.emplace(std::make_pair(mesh->mBones[boneId]->mName.C_Str(), BoneData{boneId, toGlmMatrix(mesh->mBones[boneId]->mOffsetMatrix)}));
+            bonesData.emplace(std::make_pair(
+                        mesh->mBones[boneId]->mName.C_Str(),
+                        BoneData{
+                            mesh->mNumBones - 1 - boneId,
+                            toGlmMatrix(mesh->mBones[boneId]->mOffsetMatrix)
+                        }));
         }
         processBoneChilds(scene->mRootNode, result.skeleton, bonesData, std::numeric_limits<uint32_t>::max());
     }
