@@ -80,7 +80,6 @@ std::optional<Model> readModel(const std::string &filepath)
             Bone &newBone = bones.emplace_back();
             newBone.parentID = boneSubheader.parentID;
             newBone.offsetMatrix = boneSubheader.offset;
-            newBone.localMatrix = boneSubheader.local;
             boneNames.emplace_back(boneName);
         }
 

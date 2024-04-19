@@ -24,7 +24,6 @@ enum class IndexType : uint32_t {
 struct Bone {
     uint32_t parentID;
     glm::mat4 offsetMatrix;
-    glm::mat4 localMatrix;
 };
 
 struct Skeleton {
@@ -122,7 +121,6 @@ struct MeshSubheader {
 struct BoneSubheader {
     int32_t parentID;
     glm::mat4 offset;
-    glm::mat4 local;
     uint32_t boneNameLength;
 };
 

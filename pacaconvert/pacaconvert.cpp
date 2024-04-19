@@ -7,7 +7,6 @@
 #include <assimp/postprocess.h>
 #include <assimp/scene.h>
 #include <cstddef>
-#include <cstdio>
 #include <cstring>
 #include <limits>
 #include <string>
@@ -117,7 +116,7 @@ void processBoneChilds(aiNode *node, Skeleton &outSkeleton, const std::unordered
     auto it = bonesData.find(node->mName.C_Str());
     if (it != bonesData.end()) // if node is a bone
     {
-        outSkeleton.bones.emplace_back(parentID, it->second.offset, toGlmMatrix(node->mTransformation));
+        outSkeleton.bones.emplace_back(parentID, it->second.offset);
         outSkeleton.boneNames.emplace_back(node->mName.C_Str());
         for (unsigned int i = 0; i < node->mNumChildren; i++)
         {
