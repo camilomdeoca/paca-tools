@@ -66,9 +66,9 @@ Material processMaterial(aiMaterial *material, const std::string &outName, unsig
     return result;
 }
 
-void processAnimation(aiAnimation *assimpAnim, Animation &outAnimation, const std::unordered_map<std::string, uint32_t> &boneNameToId)
+void processAnimation(aiAnimation *assimpAnim, Animation &outAnimation, const std::unordered_map<std::string, uint32_t> &boneNameToId, unsigned int indexOfAnimation)
 {
-    outAnimation.name = assimpAnim->mName.C_Str();
+    outAnimation.name = std::string(assimpAnim->mName.C_Str()) + "Animation" + std::to_string(indexOfAnimation);
     outAnimation.duration = assimpAnim->mDuration;
     outAnimation.ticksPerSecond = assimpAnim->mTicksPerSecond;
     outAnimation.keyframes.resize(boneNameToId.size());
@@ -248,6 +248,14 @@ Mesh processMesh(aiMesh *mesh, const aiScene *scene, const std::string &outName,
         processBoneChilds(scene->mRootNode, result.skeleton, bonesData, std::numeric_limits<uint32_t>::max());
     }
 
+    if (scene->HasAnimations())
+    {
+        for (unsigned int animIndex = 0; animIndex < scene->mNumAnimations; animIndex++)
+        {
+            result.animations.emplace_back(std::string(scene->mAnimations[animIndex]->mName.C_Str()) + "Animation" + std::to_string(animIndex));
+        }
+    }
+
     usedMaterialIndexes.insert(mesh->mMaterialIndex);
 
     result.materialName = outName + "Material" + std::to_string(mesh->mMaterialIndex);
@@ -286,17 +294,19 @@ ModelMaterialsAnimations modelToPacaFormat(const std::string &path, const std::s
 
     processNode(scene->mRootNode, scene, model.meshes, outName, usedMaterialIndexes);
 
-    std::optional<Animation> animation;
+    std::vector<Animation> animations;
     if (scene->HasAnimations())
     {
-        Animation anim;
         std::unordered_map<std::string, uint32_t> boneNameToId;
         for (unsigned int boneId = 0; boneId < model.meshes[0].skeleton.boneNames.size(); boneId++)
         {
             boneNameToId.emplace(std::make_pair(model.meshes[0].skeleton.boneNames[boneId], boneId));
         }
-        processAnimation(scene->mAnimations[0], anim, boneNameToId);
-        animation = anim;
+        for (unsigned int animIndex = 0; animIndex < scene->mNumAnimations; animIndex++)
+        {
+            Animation &anim = animations.emplace_back();
+            processAnimation(scene->mAnimations[0], anim, boneNameToId, animIndex);
+        }
     }
 
     std::vector<Material> materials;
@@ -306,7 +316,7 @@ ModelMaterialsAnimations modelToPacaFormat(const std::string &path, const std::s
 
     model.name = outName;
 
-    return ModelMaterialsAnimations{model, materials, animation};
+    return ModelMaterialsAnimations{model, materials, animations};
 }
 
 } // namespace paca_format

@@ -7,9 +7,9 @@
 namespace paca_format {
 
 struct ModelMaterialsAnimations {
-    std::optional<paca_format::Model> model;
-    std::optional<std::vector<paca_format::Material>> materials;
-    std::optional<Animation> animation;
+    std::optional<Model> model;
+    std::vector<Material> materials;
+    std::vector<Animation> animation;
 };
 
 ModelMaterialsAnimations modelToPacaFormat(const std::string &path, const std::string &outName);

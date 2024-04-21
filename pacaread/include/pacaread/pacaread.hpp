@@ -37,6 +37,7 @@ struct Mesh {
     std::vector<char> vertices;
     std::vector<uint32_t> indices;
     std::string materialName;
+    std::vector<std::string> animations;
     Skeleton skeleton;
 };
 
@@ -115,7 +116,12 @@ struct MeshSubheader {
     uint32_t indexType;
     uint32_t indexCount;
     uint32_t boneCount;
+    uint32_t animationsCount;
     uint32_t materialNameLength;
+};
+
+struct MeshAnimationSubHeader {
+    uint32_t animationNameLength;
 };
 
 struct BoneSubheader {

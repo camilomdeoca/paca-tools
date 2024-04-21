@@ -59,34 +59,41 @@ std::optional<Model> readModel(const std::string &filepath)
 
     for (uint32_t i = 0; i < header.numOfMeshes; i++)
     {
+        Mesh &mesh = meshes.emplace_back();
         headers::MeshSubheader subheader;
-        std::vector<char> vertices;
-        std::vector<uint32_t> indices;
-        std::vector<Bone> bones;
-        std::vector<std::string> boneNames;
-        file.read(reinterpret_cast<char*>(&subheader), sizeof(headers::MeshSubheader));
-        vertices.resize(subheader.vertexCount * vertexTypeToSize(VertexType(subheader.vertexType)));
-        indices.resize(subheader.indexCount);
-        std::string materialName(subheader.materialNameLength, '\0');
-        file.read(materialName.data(), subheader.materialNameLength);
+        file.read(reinterpret_cast<char*>(&subheader), sizeof(subheader));
+        mesh.materialName.resize(subheader.materialNameLength, '\0');
+        file.read(mesh.materialName.data(), subheader.materialNameLength);
 
-        bones.reserve(subheader.boneCount);
-        for (uint32_t j = 0; j < subheader.boneCount; j++)
+        // Read mesh's animations names
+        mesh.animations.resize(subheader.animationsCount);
+        for (uint32_t animIndex = 0; animIndex < subheader.animationsCount; animIndex++)
+        {
+            headers::MeshAnimationSubHeader animNameSubheader;
+            file.read(reinterpret_cast<char*>(&animNameSubheader), sizeof(animNameSubheader));
+            mesh.animations[animIndex].resize(animNameSubheader.animationNameLength, '\0');
+            file.read(mesh.animations[animIndex].data(), animNameSubheader.animationNameLength);
+        }
+
+        // Read skeleton
+        mesh.skeleton.bones.resize(subheader.boneCount);
+        mesh.skeleton.boneNames.resize(subheader.boneCount);
+        for (uint32_t boneId = 0; boneId < subheader.boneCount; boneId++)
         {
             headers::BoneSubheader boneSubheader;
             file.read(reinterpret_cast<char*>(&boneSubheader), sizeof(headers::BoneSubheader));
-            std::string boneName(boneSubheader.boneNameLength, '\0');
-            file.read(boneName.data(), boneName.length());
-            Bone &newBone = bones.emplace_back();
-            newBone.parentID = boneSubheader.parentID;
-            newBone.offsetMatrix = boneSubheader.offset;
-            boneNames.emplace_back(boneName);
+            mesh.skeleton.bones[boneId].parentID = boneSubheader.parentID;
+            mesh.skeleton.bones[boneId].offsetMatrix = boneSubheader.offset;
+            // Read bone name
+            mesh.skeleton.boneNames[boneId].resize(boneSubheader.boneNameLength, '\0');
+            file.read(mesh.skeleton.boneNames[boneId].data(), boneSubheader.boneNameLength);
         }
 
-        file.read(reinterpret_cast<char*>(vertices.data()), subheader.vertexCount * vertexTypeToSize(VertexType(subheader.vertexType)));
-        file.read(reinterpret_cast<char*>(indices.data()), subheader.indexCount * indexTypeToSize(IndexType(subheader.indexType)));
-
-        meshes.emplace_back(VertexType(subheader.vertexType), IndexType(subheader.indexType), vertices, indices, materialName, Skeleton{bones, boneNames});
+        // Read vertices and indices data
+        mesh.vertices.resize(subheader.vertexCount * vertexTypeToSize(VertexType(subheader.vertexType)));
+        mesh.indices.resize(subheader.indexCount);
+        file.read(reinterpret_cast<char*>(mesh.vertices.data()), subheader.vertexCount * vertexTypeToSize(VertexType(subheader.vertexType)));
+        file.read(reinterpret_cast<char*>(mesh.indices.data()), subheader.indexCount * indexTypeToSize(IndexType(subheader.indexType)));
     }
 
     return Model{meshes, modelName};

@@ -53,11 +53,21 @@ void saveModel(const Model &model, const std::string &filename)
         subheader.indexType = static_cast<uint32_t>(mesh.indexType);
         subheader.indexCount = mesh.indices.size();
         subheader.boneCount = mesh.skeleton.bones.size();
+        subheader.animationsCount = mesh.animations.size();
         subheader.materialNameLength = mesh.materialName.size();
         outfile.write(reinterpret_cast<const char*>(&subheader), sizeof(subheader));
         outfile.write(mesh.materialName.data(), mesh.materialName.size());
 
-        // Write bones
+        // Write animation names
+        for (const std::string &animName : mesh.animations)
+        {
+            headers::MeshAnimationSubHeader animNameSubheader;
+            animNameSubheader.animationNameLength = animName.size();
+            outfile.write(reinterpret_cast<const char*>(&animNameSubheader), sizeof(animNameSubheader));
+            outfile.write(animName.data(), animName.size());
+        }
+
+        // Write Skeleton
         for (uint32_t boneId = 0; boneId < mesh.skeleton.bones.size(); boneId++)
         {
             const Bone &bone = mesh.skeleton.bones[boneId];
