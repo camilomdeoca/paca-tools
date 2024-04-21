@@ -61,6 +61,8 @@ std::optional<Model> readModel(const std::string &filepath)
     {
         Mesh &mesh = meshes.emplace_back();
         headers::MeshSubheader subheader;
+        mesh.vertexType = subheader.vertexType;
+        mesh.indexType = subheader.indexType;
         file.read(reinterpret_cast<char*>(&subheader), sizeof(subheader));
         mesh.materialName.resize(subheader.materialNameLength, '\0');
         file.read(mesh.materialName.data(), subheader.materialNameLength);
