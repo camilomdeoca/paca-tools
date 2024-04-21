@@ -17,17 +17,20 @@ int main (int argc, char *argv[])
 
     paca_format::ModelMaterialsAnimations modelAndMaterials = paca_format::modelToPacaFormat(inputFilepath, outName);
 
+    printf("Model has %zu materials and %zu animations\n", modelAndMaterials.materials.size(), modelAndMaterials.animations.size());
+
     if (modelAndMaterials.model.has_value())
         paca_format::saveModel(modelAndMaterials.model.value(), outName + ".pmdl");
 
-    if (modelAndMaterials.materials.has_value())
-        for (unsigned int i = 0; i < modelAndMaterials.materials.value().size(); i++)
-        {
-            paca_format::saveMaterial(modelAndMaterials.materials.value()[i], outName + ".pmat");
-        }
+    for (unsigned int i = 0; i < modelAndMaterials.materials.size(); i++)
+    {
+        paca_format::saveMaterial(modelAndMaterials.materials[i], outName + ".pmat");
+    }
 
-    if (modelAndMaterials.animation.has_value())
-        paca_format::saveAnimation(modelAndMaterials.animation.value(), outName + ".pani");
+    for (unsigned int i = 0; i < modelAndMaterials.animations.size(); i++)
+    {
+        paca_format::saveAnimation(modelAndMaterials.animations[i], outName + ".pani");
+    }
     
     return 0;
 }
