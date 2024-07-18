@@ -53,24 +53,17 @@ set_target_properties(serializer-generator-test PROPERTIES
     #EXCLUDE_FROM_ALL true
     EXPORT_COMPILE_COMMANDS ON
 )
-add_custom_command(
-    OUTPUT
-        test/Serializer.hpp
-        test/Serializer.cpp
-        COMMAND $<TARGET_FILE:serializer-generator> ${PROJECT_SOURCE_DIR} test ${SERIALIZER_GENERATOR_TEST_SOURCES}
-    DEPENDS $<TARGET_FILE:serializer-generator>
-    WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
-)
-add_custom_target(gen-serializer
-    DEPENDS
-        test/Serializer.hpp
-        test/Serializer.cpp
-)
-add_dependencies(serializer-generator-test
-    gen-serializer
+
+include(${CMAKE_CURRENT_SOURCE_DIR}/serializer-generator.cmake)
+
+add_serializer_generation(serializer-generator-test
+    HEADER test/Serializer.hpp
+    CODE   test/Serializer.cpp
+    FILES  ${SERIALIZER_GENERATOR_TEST_SOURCES}
 )
 
 enable_testing()
+
 add_test(
     NAME serializer-generator-test
     COMMAND $<TARGET_FILE:serializer-generator-test>
